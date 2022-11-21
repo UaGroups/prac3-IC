@@ -60,50 +60,47 @@ class Miner
       
        Block* mine(Block* block) const
        {
-           // create a copy of the block
+           //create a copy of the block
            Block mined = Block(block->serialize());
            mined.nonce = 0;
            std::string hash;
+           //Nueva variable, auxiliar
            std::string auxhash;
+           
            //Variables
-           bool encontrado = false;
-           bool auxbool = false;
-           int final = 0;
-           int cont = 0;
-           int start = 0;
+           int final=0;
+           int cont=0;
+           int start=0;
+           bool encontrado=false;
+           bool auxbool=false;
+           
           
            //Calcula el hash del bloque
            omp_set_num_threads(4);
  
            #pragma omp parallel private(auxbool, auxhash, start) shared(encontrado, mined)
            {
-               //start = omp_get_thread_num();
-               while(!encontrado){
-                   #pragma omp critical
-                   { 
-                       start = omp_get_thread_num();
-                   }
-                   while(!encontrado){ 
-                       auxhash = this->calculateHash_aux(&mined, start);
+               start=omp_get_thread_num();
+               while(!encontrado){ 
+               	auxhash=this->calculateHashAux(&mined, start);
                        #pragma omp critical
                        { 
-                           start += 4;
+                           start=start+4;
                        }
-                       auxbool = this->verify(auxhash);
+                       auxbool=this->verify(auxhash);
                        if(auxbool){ 
-                           final = start-4;
-                           hash = auxhash;
-                           encontrado = true;
+                           final=start-4;
+                           hash=auxhash;
+                           encontrado=true;
                            #pragma omp flush(encontrado)
                        };
-                   };
-                   cont++; 
                };
+               cont++; 
            }
-           // update block with mined hash
-           mined.hash = hash;
-           block->nonce = final;
-           block->hash = hash;
+           //update block with mined hash
+           mined.hash=hash;
+           block->nonce=final;
+           block->hash=hash;
            return block;
        }
       
@@ -126,7 +123,7 @@ class Miner
            return sha256(ss.str());
        }
  
-       std::string calculateHash_aux(Block* block, int contador) const
+       std::string calculateHashAux(Block* block, int contador) const
        {
            std::stringstream ss;
            ss<<block->index<<block->timestamp<<block->previousHash<<contador;
