@@ -60,11 +60,11 @@ class Miner
       
        Block* mine(Block* block) const
        {
-           //create a copy of the block
+           //create a copy of the block (Crea una copia del bloque)
            Block mined = Block(block->serialize());
            mined.nonce = 0;
            std::string hash;
-           //Nueva variable, auxiliar
+           //Nueva variable, auxiliar de hash
            std::string auxhash;
            
            //Variables
@@ -74,15 +74,18 @@ class Miner
            bool encontrado=false;
            bool auxbool=false;
            
-          
-           //Calcula el hash del bloque
+           //Establece la cantidad de subprocesos que se usaran para las regiones paralelas
            omp_set_num_threads(4);
- 
+
+           //Parallel -> Define una region paralela, que es el codigo que ejecutara varios subprocesos en paralelo
+           //Private -> Especifica que cada subproceso debe de tener su propia instancia de una variable (dentro dejamos las variables que van a tener sus propios subprocesos)
+           //Shared -> Especifica que una o varias variables deben compartirse entre todos los subprocesos
            #pragma omp parallel private(auxbool, auxhash, start) shared(encontrado, mined)
            {
-               start=omp_get_thread_num();
+               start=omp_get_thread_num(); //Le asignamos a start el hilo
                while(!encontrado){ 
-               	auxhash=this->calculateHashAux(&mined, start);
+               auxhash=this->calculateHashAux(&mined, start);
+                        //Critical -> Especifica que el codigo solo se ejecuta en un subproceso cada vez. Para evitar problemas a la hora de acceder a la memoria
                        #pragma omp critical
                        { 
                            start=start+4;
@@ -92,12 +95,14 @@ class Miner
                            final=start-4;
                            hash=auxhash;
                            encontrado=true;
+                           //Flush ->  Ejecuta la opearacion de descarga. Esta operacion hace que la vista temporal de la memoria en un subproceso sea 
+                           //coherente con la memoria y aplica un orden en las operaciones de memoria
                            #pragma omp flush(encontrado)
                        };
                };
                cont++; 
            }
-           //update block with mined hash
+           //update block with mined hash (Actualiza el codigo con el hash minado)
            mined.hash=hash;
            block->nonce=final;
            block->hash=hash;
