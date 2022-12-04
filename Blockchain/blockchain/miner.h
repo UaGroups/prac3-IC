@@ -70,7 +70,7 @@ class Miner
            //Variables
            int final=0;
            int cont=0;
-           int numberthreads=0;
+           int start=0;
            bool encontrado=false;
            bool auxbool=false;
            
@@ -80,19 +80,19 @@ class Miner
            //Parallel -> Define una region paralela, que es el codigo que ejecutara varios subprocesos en paralelo
            //Private -> Especifica que cada subproceso debe de tener su propia instancia de una variable (dentro dejamos las variables que van a tener sus propios subprocesos)
            //Shared -> Especifica que una o varias variables deben compartirse entre todos los subprocesos
-           #pragma omp parallel private(auxbool, auxhash, numberthreads) shared(encontrado, mined)
+           #pragma omp parallel private(auxbool, auxhash, start) shared(encontrado, mined)
            {
-               numberthreads=omp_get_thread_num(); //Le asignamos a numberthreads el hilo
+               start=omp_get_thread_num(); //Le asignamos a start el hilo
                while(!encontrado){ 
-               auxhash=this->calculateHashAux(&mined, numberthreads);
+               auxhash=this->calculateHashAux(&mined, start);
                         //Critical -> Especifica que el codigo solo se ejecuta en un subproceso cada vez. Para evitar problemas a la hora de acceder a la memoria
                        #pragma omp critical
                        { 
-                           numberthreads=numberthreads+4;
+                           start=start+4;
                        }
                        auxbool=this->verify(auxhash);
                        if(auxbool){ 
-                           final=numberthreads-4;
+                           final=start-4;
                            hash=auxhash;
                            encontrado=true;
                            //Flush ->  Ejecuta la opearacion de descarga. Esta operacion hace que la vista temporal de la memoria en un subproceso sea 
