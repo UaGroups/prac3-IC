@@ -1,8 +1,8 @@
 # Práctica 3 - Ingeniería de computadores
 Grupo:
-Miguel Rodríguez
-Santiago Nogales 
-Alejandro Molines
+- Miguel Rodríguez
+- Santiago Nogales 
+- Alejandro Molines
 
 ## Practica 3.1: Blockchain
 Dentro del fichero encontramos el programa ya paralelizado junto con un fichero con las instrucciones para su ejecución.
